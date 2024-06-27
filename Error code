@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract ErrorHandling {
+    uint public X;
+
+    function setValue(uint value) public {
+        require(_value > 0, "Value must be greater than zero");
+        X = value;
+    }
+    function checkValue() public view {
+        if (X %2 != 0) {
+            revert("Value is odd number ");
+        }
+    }
+    function testingValue() public view {
+       assert(X > 0);
+    }
+}
