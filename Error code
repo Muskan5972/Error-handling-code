@@ -1,19 +1,32 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract ErrorHandling {
-    uint public X;
+contract ErrorDemonstration {
+    uint public storedValue;
 
-    function setValue(uint value) public {
-        require(value > 0, "Value must be greater than zero");
-        X = value;
+    // Event to log changes
+    event ValueUpdated(uint newValue);
+
+    // Function to set the value and demonstrate `require`
+    function setValue(uint newValue) public {
+        // `require` ensures that the value is positive
+        require(newValue > 0, "Value must be greater than zero");
+        storedValue = newValue;
+        emit ValueUpdated(newValue);
     }
-    function checkValue() public view {
-        if (X %2 != 0) {
-            revert("Value is odd number ");
+
+    // Function to demonstrate `revert` for custom error handling
+    function checkEven() public view returns (string memory) {
+        // `revert` is used to handle specific error conditions
+        if (storedValue % 2 != 0) {
+            revert("Stored value is not an even number");
         }
+        return "Stored value is even";
     }
-    function testingValue() public view {
-       assert(X > 0);
+
+    // Function to demonstrate `assert` for internal consistency checks
+    function validateState() public view {
+        // `assert` checks that the stored value is non-negative
+        assert(storedValue >= 0);
     }
 }
