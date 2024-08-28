@@ -6,48 +6,89 @@ This Solidity program is a simple "Error handling" program that demonstrates the
 
 This program is  contract written in Solidity, a programming language used for developing smart contracts on the Ethereum blockchain. The contract has a three functions that returns the different outputs. This program serves as a simple and straightforward introduction to Error handling and functions concept in Solidity programming, and can be used as a stepping stone for more complex projects in the future.
 
-## Getting Started
+## Overview
+The SchoolGradingSystem smart contract allows an owner (typically the admin) to register students, assign grades, update grades, and retrieve grades for students. The contract includes state variables, events, and several functions with essential Solidity features such as require, assert, and revert.
 
 ### Executing program
+````
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract ErrorDemonstration {
-    uint public storedValue;
+contract SchoolGradingSystem {
 
-    // Event to log changes
-    event ValueUpdated(uint newValue);
+    // State variables
+    
+    address public owner;
+    
+    mapping(address => uint) public studentGrades;
+    
+    mapping(address => bool) public registeredStudents;
 
-    // Function to set the value and demonstrate `require`
-    function setValue(uint newValue) public {
-        // `require` ensures that the value is positive
-        require(newValue > 0, "Value must be greater than zero");
-        storedValue = newValue;
-        emit ValueUpdated(newValue);
+    // Events
+    event StudentRegistered(address indexed student);
+    event GradeAssigned(address indexed student, uint grade);
+    event GradeUpdated(address indexed student, uint newGrade);
+
+    constructor() {
+        owner = msg.sender;
     }
 
-    // Function to demonstrate `revert` for custom error handling
-    function checkEven() public view returns (string memory) {
-        // `revert` is used to handle specific error conditions
-        if (storedValue % 2 != 0) {
-            revert("Stored value is not an even number");
+    // Modifier to check if the sender is the owner
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can perform this action");
+        _;
+    }
+
+    // Register a new student
+    function registerStudent(address _student) public onlyOwner {
+        require(!registeredStudents[_student], "Student is already registered");
+        registeredStudents[_student] = true;
+        emit StudentRegistered(_student);
+    }
+
+    // Assign a grade to a student
+    function assignGrade(address _student, uint _grade) public onlyOwner {
+        require(registeredStudents[_student], "Student is not registered");
+        require(_grade >= 0 && _grade <= 100, "Grade must be between 0 and 100");
+        studentGrades[_student] = _grade;
+        emit GradeAssigned(_student, _grade);
+    }
+
+    // Update the grade of a student
+    function updateGrade(address _student, uint _newGrade) public onlyOwner {
+        require(registeredStudents[_student], "Student is not registered");
+        require(_newGrade >= 0 && _newGrade <= 100, "Grade must be between 0 and 100");
+        // Using revert to handle grade greater than 100
+        if (_newGrade > 100) {
+            revert("New grade cannot be greater than 100");
         }
-        return "Stored value is even";
+
+        studentGrades[_student] = _newGrade;
+        
+        // Using assert to check if the grade is correctly updated
+        assert(studentGrades[_student] == _newGrade);
+
+        emit GradeUpdated(_student, _newGrade);
     }
 
-    // Function to demonstrate `assert` for internal consistency checks
-    function validateState() public view {
-        // `assert` checks that the stored value is non-negative
-        assert(storedValue >= 0);
+    // View the grade of a student
+    function getGrade(address _student) public view returns (uint) {
+        require(registeredStudents[_student], "Student is not registered");
+        return studentGrades[_student];
     }
+
 }
 
+`````
 
-To compile the code, click on the "Solidity Compiler" tab in the left-hand sidebar. Make sure the "Compiler" option is set to "0.8.0" (or another compatible version), and then click on the "Compile Error handling.sol" button.
+## Working
+This project is a basic school grading system where the owner (like a school administrator) can register students, assign grades, and update those grades. The contract uses checks to make sure only valid actions are performed:
 
-Once the code is compiled, you can deploy the contract by clicking on the "Deploy & Run Transactions" tab in the left-hand sidebar. Select the "Errordemostration" contract from the dropdown menu, and then click on the "Deploy" button.
+__Registering Students:__ The owner can add students to the system, ensuring that a student is not already registered.
 
-Once the contract is deployed, you can interact with it by calling all the functions that are "setValue", "checkValue" and "testingValue". Click on the "ErrorHandling" contract in the left-hand sidebar, and then click on the  "setValue", "checkeven" and "validatestate" functions. Finally, click on the "transact" button to execute the function and retrieve the output.
+__Assigning Grades:__ The owner can assign a grade between 0 and 100 to a registered student.
+
+__Updating Grades:__ The owner can update a student’s grade but ensures the new grade is also between 0 and 100. If the grade is over 100, the function will stop and cancel the update.
 
 ## Authors
 
