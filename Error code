@@ -1,32 +1,63 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract ErrorDemonstration {
-    uint public storedValue;
+contract SchoolGradingSystem {
+    // State variables
+    address public owner;
+    mapping(address => uint) public studentGrades;
+    mapping(address => bool) public registeredStudents;
 
-    // Event to log changes
-    event ValueUpdated(uint newValue);
+    // Events
+    event StudentRegistered(address indexed student);
+    event GradeAssigned(address indexed student, uint grade);
+    event GradeUpdated(address indexed student, uint newGrade);
 
-    // Function to set the value and demonstrate `require`
-    function setValue(uint newValue) public {
-        // `require` ensures that the value is positive
-        require(newValue > 0, "Value must be greater than zero");
-        storedValue = newValue;
-        emit ValueUpdated(newValue);
+    constructor() {
+        owner = msg.sender;
     }
 
-    // Function to demonstrate `revert` for custom error handling
-    function checkEven() public view returns (string memory) {
-        // `revert` is used to handle specific error conditions
-        if (storedValue % 2 != 0) {
-            revert("Stored value is not an even number");
+    // Modifier to check if the sender is the owner
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can perform this action");
+        _;
+    }
+
+    // Register a new student
+    function registerStudent(address _student) public onlyOwner {
+        require(!registeredStudents[_student], "Student is already registered");
+        registeredStudents[_student] = true;
+        emit StudentRegistered(_student);
+    }
+
+    // Assign a grade to a student
+    function assignGrade(address _student, uint _grade) public onlyOwner {
+        require(registeredStudents[_student], "Student is not registered");
+        require(_grade >= 0 && _grade <= 100, "Grade must be between 0 and 100");
+        studentGrades[_student] = _grade;
+        emit GradeAssigned(_student, _grade);
+    }
+
+    // Update the grade of a student
+    function updateGrade(address _student, uint _newGrade) public onlyOwner {
+        require(registeredStudents[_student], "Student is not registered");
+        require(_newGrade >= 0 && _newGrade <= 100, "Grade must be between 0 and 100");
+        // Using revert to handle grade greater than 100
+        if (_newGrade > 100) {
+            revert("New grade cannot be greater than 100");
         }
-        return "Stored value is even";
+
+        studentGrades[_student] = _newGrade;
+        
+        // Using assert to check if the grade is correctly updated
+        assert(studentGrades[_student] == _newGrade);
+
+        emit GradeUpdated(_student, _newGrade);
     }
 
-    // Function to demonstrate `assert` for internal consistency checks
-    function validateState() public view {
-        // `assert` checks that the stored value is non-negative
-        assert(storedValue >= 0);
+    // View the grade of a student
+    function getGrade(address _student) public view returns (uint) {
+        require(registeredStudents[_student], "Student is not registered");
+        return studentGrades[_student];
     }
+
 }
